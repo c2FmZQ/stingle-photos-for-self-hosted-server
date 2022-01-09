@@ -22,7 +22,7 @@ android {
     }
     compileSdkVersion 31
     defaultConfig {
-        applicationId "org.stingle.photos"
+        applicationId "org.c2FmZQ.photos"
         minSdkVersion 23
         targetSdkVersion 31
     }
@@ -31,7 +31,7 @@ android {
             signingConfig signingConfigs.release
             resValue "string", "app_name", "Stingle Photos"
             resValue "string", "camera", "Camera"
-            resValue "string", "content_provider", "org.stingle.photos.share"
+            resValue "string", "content_provider", "org.c2FmZQ.photos.share"
             resValue "string", "api_server_url", "https://api.stingle.org/"
             resValue "string", "default_home_folder_name", "StinglePhotos"
             buildConfigField "Boolean", "ALLOW_INSECURE_TLS", 'false'
@@ -40,7 +40,7 @@ android {
         debug {
             applicationIdSuffix '.debug'
             versionNameSuffix '-debug'
-            resValue "string", "content_provider", "org.stingle.photos.share.debug"
+            resValue "string", "content_provider", "org.c2FmZQ.photos.share.debug"
             resValue "string", "app_name", "Stingle Photos Dev"
             resValue "string", "camera", "Camera Dev"
             resValue "string", "api_server_url", "https://192.168.1.2/"
