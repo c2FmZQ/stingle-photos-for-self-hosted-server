@@ -46,6 +46,14 @@
 			android:layout_margin="10dp"
 			android:inputType="textPassword" />
 
+		<EditText
+			android:id="@+id/api_server"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:layout_margin="10dp"
+			android:hint="@string/api_server"
+			android:inputType="textUri" />
+
 		<LinearLayout
 			android:id="@+id/advanced_opener"
 			android:layout_width="match_parent"

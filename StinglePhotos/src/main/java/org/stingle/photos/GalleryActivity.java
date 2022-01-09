@@ -916,11 +916,6 @@ public class GalleryActivity extends AppCompatActivity
 			invalidateOptionsMenu();
 			bottomNavigationView.getMenu().getItem(0).setChecked(true);
 		}
-		else if (id == R.id.nav_storage) {
-			Intent intent = new Intent();
-			intent.setClass(this, StorageActivity.class);
-			startActivity(intent);
-		}
 		else if (id == R.id.nav_backup) {
 			Intent intent = new Intent();
 			intent.setClass(this, BackupKeyActivity.class);
@@ -932,10 +927,6 @@ public class GalleryActivity extends AppCompatActivity
 		else if (id == R.id.nav_settings) {
 			Intent intent = new Intent();
 			intent.setClass(this, SettingsActivity.class);
-			startActivity(intent);
-		}
-		else if (id == R.id.nav_website) {
-			Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://stingle.org"));
 			startActivity(intent);
 		}
 		else if (id == R.id.nav_logout) {

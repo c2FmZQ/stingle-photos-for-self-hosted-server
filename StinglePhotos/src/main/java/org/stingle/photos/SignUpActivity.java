@@ -19,6 +19,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 
 import org.stingle.photos.AsyncTasks.SignUpAsyncTask;
+import org.stingle.photos.StinglePhotosApplication;
 import org.stingle.photos.Util.Helpers;
 import org.stingle.photos.Widget.Tooltip.SimpleTooltip;
 
@@ -44,6 +45,12 @@ public class SignUpActivity extends AppCompatActivity {
 		findViewById(R.id.loginBtn).setOnClickListener(gotoLogin());
 		findViewById(R.id.backup_keys_info).setOnClickListener(backupKeysInfo());
 		findViewById(R.id.advanced_opener).setOnClickListener(toggleAdvanced());
+
+		String apiServerUrl = StinglePhotosApplication.getCrypto().getApiServerUrl();
+		if (apiServerUrl == "") {
+			apiServerUrl = getString(R.string.api_server_url);
+		}
+		((EditText)findViewById(R.id.api_server)).setText(apiServerUrl);
 	}
 
 	@Override
@@ -148,6 +155,7 @@ public class SignUpActivity extends AppCompatActivity {
 			final String email = ((EditText)findViewById(R.id.email)).getText().toString();
 			final String password1 = ((EditText)findViewById(R.id.password1)).getText().toString();
 			String password2 = ((EditText)findViewById(R.id.password2)).getText().toString();
+			final String apiServerUrl = ((EditText)findViewById(R.id.api_server)).getText().toString();
 
 			if(!Helpers.isValidEmail(email)){
 				Helpers.showAlertDialog(SignUpActivity.this, getString(R.string.error), getString(R.string.invalid_email));
@@ -170,6 +178,8 @@ public class SignUpActivity extends AppCompatActivity {
 			}
 
 			SwitchCompat isBackup = findViewById(R.id.is_backup_keys);
+
+			StinglePhotosApplication.getCrypto().saveApiServerUrl(apiServerUrl);
 
 			(new SignUpAsyncTask(SignUpActivity.this, email, password1, isBackup.isChecked())).execute();
 		};

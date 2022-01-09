@@ -35,6 +35,8 @@ public class Crypto {
     protected Context context;
     protected SodiumAndroid so;
 
+    protected static final String API_SERVER_FILENAME = "apiServerUrl";
+
     public static final int FILE_TYPE_GENERAL = 1;
     public static final int FILE_TYPE_PHOTO = 2;
     public static final int FILE_TYPE_VIDEO = 3;
@@ -91,6 +93,18 @@ public class Crypto {
     public Crypto(Context context){
         this.context = context;
         so = new SodiumAndroid();
+    }
+
+    public String getApiServerUrl() {
+        byte[] url = readPrivateFile(API_SERVER_FILENAME);
+	if (url == null) {
+	  return "";
+	}
+	return new String(url);
+    }
+
+    public void saveApiServerUrl(String apiServerUrl) {
+        savePrivateFile(API_SERVER_FILENAME, apiServerUrl.getBytes());
     }
 
     public void generateMainKeypair(String password) throws CryptoException{

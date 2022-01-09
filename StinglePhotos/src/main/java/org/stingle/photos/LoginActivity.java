@@ -45,6 +45,12 @@ public class LoginActivity extends AppCompatActivity {
 			}
 			return false;
 		});
+
+		String apiServerUrl = StinglePhotosApplication.getCrypto().getApiServerUrl();
+                if (apiServerUrl == "") {
+                        apiServerUrl = getString(R.string.api_server_url);
+                }
+                ((EditText)findViewById(R.id.api_server)).setText(apiServerUrl);
 	}
 
 	private OnClickListener login() {
@@ -77,6 +83,7 @@ public class LoginActivity extends AppCompatActivity {
 	private void doLogin() {
 		String email = ((EditText) findViewById(R.id.email)).getText().toString();
 		String password = ((EditText) findViewById(R.id.password)).getText().toString();
+		String apiServerUrl = ((EditText) findViewById(R.id.api_server)).getText().toString();
 
 		if(!Helpers.isValidEmail(email)){
 			Helpers.showAlertDialog(this, getString(R.string.error), getString(R.string.invalid_email));
@@ -87,6 +94,8 @@ public class LoginActivity extends AppCompatActivity {
 			Helpers.showAlertDialog(this, getString(R.string.error), String.format(getString(R.string.password_short), getString(R.string.min_pass_length)));
 			return;
 		}
+
+		StinglePhotosApplication.getCrypto().saveApiServerUrl(apiServerUrl);
 
 		(new LoginAsyncTask(this, email, password)).execute();
 
