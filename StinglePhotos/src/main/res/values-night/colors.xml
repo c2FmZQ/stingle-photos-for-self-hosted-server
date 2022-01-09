@@ -1,6 +1,6 @@
 <resources>
 
-    <color name="primaryColor">#F44336</color>
+    <color name="primaryColor">#3643F4</color>
     <color name="hr_color">#84B6B6B6</color>
     <color name="textColor">#E7FFFFFF</color>
     <color name="loading_paceholder">#25B6B6B6</color>

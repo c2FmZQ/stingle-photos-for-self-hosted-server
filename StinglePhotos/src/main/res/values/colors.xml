@@ -2,7 +2,7 @@
 
     <color name="main_bg_color">#273041</color>
     <color name="main_bg_color_trans">#B2273041</color>
-    <color name="sec_color">#e74c3c</color>
+    <color name="sec_color">#4c3ce7</color>
     <color name="sec_color_light">#fc6566</color>
     <color name="galery_item_bg">#66B6B6B6</color>
     <color name="box_bg">#36B6B6B6</color>
@@ -10,10 +10,10 @@
     <color name="link">#DF0945CA</color>
     <color name="textColor">#DF000000</color>
 
-    <color name="primaryColor">#b71c1c</color>
-    <color name="primaryLightColor">#f05545</color>
-    <color name="primaryDarkColor">#7f0000</color>
-    <color name="colorAccent">#b71c1c</color>
+    <color name="primaryColor">#1c1cb7</color>
+    <color name="primaryLightColor">#4555f0</color>
+    <color name="primaryDarkColor">#00007f</color>
+    <color name="colorAccent">#1c1cb7</color>
     <color name="lightAccent">#D5D5D5</color>
     <color name="disabledText">#61000000</color>
     <color name="secondaryText">#8A000000</color>
