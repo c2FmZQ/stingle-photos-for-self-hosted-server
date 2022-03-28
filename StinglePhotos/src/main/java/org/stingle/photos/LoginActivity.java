@@ -95,6 +95,10 @@ public class LoginActivity extends AppCompatActivity {
 			return;
 		}
 
+		if(!apiServerUrl.endsWith("/")){
+			apiServerUrl = apiServerUrl + "/";
+		}
+
 		StinglePhotosApplication.getCrypto().saveApiServerUrl(apiServerUrl);
 
 		(new LoginAsyncTask(this, email, password)).execute();
