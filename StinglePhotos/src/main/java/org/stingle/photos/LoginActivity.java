@@ -47,10 +47,10 @@ public class LoginActivity extends AppCompatActivity {
 		});
 
 		String apiServerUrl = StinglePhotosApplication.getCrypto().getApiServerUrl();
-                if (apiServerUrl == "") {
-                        apiServerUrl = getString(R.string.api_server_url);
-                }
-                ((EditText)findViewById(R.id.api_server)).setText(apiServerUrl);
+		if (apiServerUrl == "") {
+			apiServerUrl = getString(R.string.api_server_url);
+		}
+		((EditText)findViewById(R.id.api_server)).setText(apiServerUrl);
 	}
 
 	private OnClickListener login() {
