@@ -25,16 +25,15 @@ import com.squareup.picasso3.RequestHandler;
 import org.stingle.photos.Crypto.Crypto;
 import org.stingle.photos.Db.Objects.StingleDbFile;
 import org.stingle.photos.Db.Query.AlbumFilesDb;
+import org.stingle.photos.Db.Query.AutoCloseableCursor;
 import org.stingle.photos.Db.Query.FilesDb;
 import org.stingle.photos.Db.Query.GalleryTrashDb;
 import org.stingle.photos.Db.StingleDb;
 import org.stingle.photos.Gallery.Helpers.AutoFitGridLayoutManager;
 import org.stingle.photos.Gallery.Helpers.IDragSelectAdapter;
 import org.stingle.photos.R;
-import org.stingle.photos.StinglePhotosApplication;
 import org.stingle.photos.Sync.SyncManager;
 import org.stingle.photos.Util.Helpers;
-import org.stingle.photos.Util.MemoryCache;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -50,19 +49,18 @@ import java.util.Objects;
 public class GalleryAdapterPisasso extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements IDragSelectAdapter {
 	private final Context context;
 	private FilesDb db;
-	private final MemoryCache memCache = StinglePhotosApplication.getCache();
 	private final Listener callback;
-	private final ArrayList<Integer> selectedIndices = new ArrayList<Integer>();
+	private final ArrayList<Integer> selectedIndices = new ArrayList<>();
 	private final int thumbSize;
 	private boolean isSelectModeActive = false;
 	private final AutoFitGridLayoutManager lm;
 	private final Picasso picasso;
-	private final LruCache<Integer, FileProps> filePropsCache = new LruCache<Integer, FileProps>(512);
+	private final LruCache<Integer, FileProps> filePropsCache = new LruCache<>(512);
 	private final HashMap<Integer, String> datePositions = new HashMap<>();
 	private final ArrayList<Integer> datePositionsPlain = new ArrayList<>();
 	int totalItemCount = 0;
-	private int set = SyncManager.GALLERY;
-	private String albumId = null;
+	private final int set;
+	private final String albumId;
 	private final int DB_SORT = StingleDb.SORT_DESC;
 
 	public static final int TYPE_ITEM = 0;
@@ -195,8 +193,9 @@ public class GalleryAdapterPisasso extends RecyclerView.Adapter<RecyclerView.Vie
 		boolean isAllSelected = true;
 		int endIndex = getEndIndexOfDate(dateIndex);
 		for(int i=dateIndex+1;i<endIndex; i++){
-			if(!selectedIndices.contains(i)){
+			if (!selectedIndices.contains(i)) {
 				isAllSelected = false;
+				break;
 			}
 		}
 
@@ -213,15 +212,12 @@ public class GalleryAdapterPisasso extends RecyclerView.Adapter<RecyclerView.Vie
 
 	protected int getEndIndexOfDate(int dateIndex){
 		int itemNum = datePositionsPlain.indexOf(dateIndex);
-		int datesNextIndex = datePositionsPlain.size() - 1;
 		if(datePositionsPlain.size()-1 > itemNum){
-			datesNextIndex = itemNum+1;
-			return datePositionsPlain.get(datesNextIndex);
+			return datePositionsPlain.get(itemNum+1);
 		}
 		else{
 			return getItemCount();
 		}
-
 	}
 
 	protected static class PosTranslate{
@@ -234,21 +230,25 @@ public class GalleryAdapterPisasso extends RecyclerView.Adapter<RecyclerView.Vie
 		datePositions.clear();
 		datePositionsPlain.clear();
 		totalItemCount = 0;
-		Cursor result = db.getAvailableDates(albumId, DB_SORT);
-		while(result.moveToNext()) {
-			datePositions.put(totalItemCount, convertDate(result.getString(0)));
-			datePositionsPlain.add(totalItemCount);
-			totalItemCount += result.getInt(1) + 1;
+		try(AutoCloseableCursor autoCloseableCursor = db.getAvailableDates(albumId, DB_SORT)) {
+			Cursor result = autoCloseableCursor.getCursor();
+			while (result.moveToNext()) {
+				datePositions.put(totalItemCount, convertDate(result.getString(0)));
+				datePositionsPlain.add(totalItemCount);
+				totalItemCount += result.getInt(1) + 1;
+			}
 		}
 	}
 
-	private String convertDate(String dateString){
-		try {
-			SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-			Date date = fmt.parse(dateString);
+	private final SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+	private final SimpleDateFormat outputFormat = new SimpleDateFormat("MMMM d, y", Locale.getDefault());
 
-			SimpleDateFormat fmtOut = new SimpleDateFormat("MMMM d, y", Locale.getDefault());
-			return fmtOut.format(date);
+	private synchronized String convertDate(String dateString){
+		try {
+			Date date = inputFormat.parse(dateString);
+			if(date != null) {
+				return outputFormat.format(date);
+			}
 		}
 		catch (ParseException ignored) {}
 
@@ -258,8 +258,7 @@ public class GalleryAdapterPisasso extends RecyclerView.Adapter<RecyclerView.Vie
 	public static String getDbDate(long time) {
 		Calendar cal = Calendar.getInstance(Locale.ENGLISH);
 		cal.setTimeInMillis(time);
-		String date = DateFormat.format("yyyy-MM-dd", cal).toString();
-		return date;
+		return DateFormat.format("yyyy-MM-dd", cal).toString();
 	}
 
 	private boolean isPositionIsDate(int position){
@@ -269,6 +268,19 @@ public class GalleryAdapterPisasso extends RecyclerView.Adapter<RecyclerView.Vie
 	private int getItemDatePosition(int index){
 		return (-Collections.binarySearch(datePositionsPlain, index) - 2);
 	}
+
+	public String getDateForPosition(int position) {
+		String date = null;
+		for (int i = 0; i < datePositionsPlain.size(); i++) {
+			if (position >= datePositionsPlain.get(i)) {
+				date = datePositions.get(datePositionsPlain.get(i));
+			} else {
+				break;
+			}
+		}
+		return date;
+	}
+
 
 	private PosTranslate translatePos(int pos){
 		if(datePositions.containsKey(pos)){
@@ -330,8 +342,9 @@ public class GalleryAdapterPisasso extends RecyclerView.Adapter<RecyclerView.Vie
 	}
 
 	// Create new views (invoked by the layout manager)
+	@NonNull
 	@Override
-	public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+	public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
 		if(viewType == TYPE_ITEM) {
 			// create a new view
 			RelativeLayout v = (RelativeLayout) LayoutInflater.from(parent.getContext())
@@ -344,20 +357,16 @@ public class GalleryAdapterPisasso extends RecyclerView.Adapter<RecyclerView.Vie
 
 			return vh;
 		}
-		else if(viewType == TYPE_DATE){
+		else {
 			RelativeLayout v = (RelativeLayout) LayoutInflater.from(parent.getContext())
 					.inflate(R.layout.item_gallery_date, parent, false);
 
-			GalleryDate vh = new GalleryDate(v);
-
-			return vh;
+			return new GalleryDate(v);
 		}
-
-		return null;
 	}
 
 	@Override
-	public void onBindViewHolder(RecyclerView.ViewHolder holderObj, final int rawPosition) {
+	public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holderObj, final int rawPosition) {
 		PosTranslate transPos = translatePos(rawPosition);
 
 		if(holderObj instanceof GalleryVH) {
@@ -368,11 +377,7 @@ public class GalleryAdapterPisasso extends RecyclerView.Adapter<RecyclerView.Vie
 				holder.image.setPadding(size, size, size, size);
 				holder.checkbox.setVisibility(View.VISIBLE);
 
-				if (selectedIndices.contains(rawPosition)) {
-					holder.checkbox.setChecked(true);
-				} else {
-					holder.checkbox.setChecked(false);
-				}
+				holder.checkbox.setChecked(selectedIndices.contains(rawPosition));
 				holder.layout.setElevation(0);
 			} else {
 				int size = Helpers.convertDpToPixels(context, 2);
@@ -455,11 +460,7 @@ public class GalleryAdapterPisasso extends RecyclerView.Adapter<RecyclerView.Vie
 			if (isSelectModeActive) {
 				holder.checkbox.setVisibility(View.VISIBLE);
 
-				if (isAllItemsSelectedInDate(rawPosition)) {
-					holder.checkbox.setChecked(true);
-				} else {
-					holder.checkbox.setChecked(false);
-				}
+				holder.checkbox.setChecked(isAllItemsSelectedInDate(rawPosition));
 				holder.layout.setElevation(0);
 
 				params.setMarginStart(Helpers.convertDpToPixels(context, 25));

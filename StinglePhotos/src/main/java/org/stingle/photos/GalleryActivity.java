@@ -177,6 +177,7 @@ public class GalleryActivity extends AppCompatActivity
 	private ActionBarDrawerToggle toggle;
 	private DrawerLayout drawer;
 	private NavigationView navigationView;
+	private SwipeRefreshLayout pullToRefresh;
 
 
 	@Override
@@ -201,7 +202,7 @@ public class GalleryActivity extends AppCompatActivity
 		navigationView = findViewById(R.id.nav_view);
 		showBurgerMenu();
 
-		final SwipeRefreshLayout pullToRefresh = findViewById(R.id.pullToRefresh);
+		pullToRefresh = findViewById(R.id.pullToRefresh);
 		pullToRefresh.setOnRefreshListener(() -> {
 			SyncManager.stopSync(this);
 			SyncManager.startSync(this);
@@ -262,7 +263,7 @@ public class GalleryActivity extends AppCompatActivity
 		updateBottomNavigationMenu();
 
 		setVersionLabel();
-		if(Helpers.isServerAddonPresent(this,"addon-api-stingle-org")){
+		if(Helpers.isServerAddonPresent(this,"addon-api-stingle-org") || !Helpers.isServerAddonsFieldSet(this)){
 			navigationView.getMenu().findItem(R.id.nav_storage).setVisible(true);
 		}
 
@@ -326,15 +327,6 @@ public class GalleryActivity extends AppCompatActivity
 			checkLoginAndInit();
 		}
 
-		// Check if delete after import is enabled and we are not storage manager, request for permission
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-			if(SyncManager.isImportEnabled(this)){
-				FileManager.requestReadMediaPermissions(this);
-			}
-			if(SyncManager.isImportDeleteEnabled(this) && !Environment.isExternalStorageManager()){
-				requestManageExternalStoragePermission();
-			}
-		}
 		if (SyncManager.isImportEnabled(this)) {
 			ImportJobSchedulerService.scheduleJob(this);
 		}
@@ -418,6 +410,15 @@ public class GalleryActivity extends AppCompatActivity
 
 	private void setVersionLabel(){
 		((TextView)findViewById(R.id.version_label)).setText("v" + BuildConfig.VERSION_NAME);
+	}
+
+
+	public void disablePullToRefresh(){
+		pullToRefresh.setEnabled(false);
+	}
+
+	public void enablePullToRefresh(){
+		pullToRefresh.setEnabled(true);
 	}
 
 	public void initCurrentFragment(){
@@ -723,6 +724,16 @@ public class GalleryActivity extends AppCompatActivity
 
 		AutoImportSetup.showAutoImportSetup(this);
 		showBackupPhraseReminder();
+
+		// Check if delete after import is enabled and we are not storage manager, request for permission
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+			if(SyncManager.isImportEnabled(this)){
+				FileManager.requestReadMediaPermissions(this);
+			}
+			if(SyncManager.isImportDeleteEnabled(this) && !Environment.isExternalStorageManager()){
+				requestManageExternalStoragePermission();
+			}
+		}
 	}
 
 	public boolean isSyncBarDisabled(){
